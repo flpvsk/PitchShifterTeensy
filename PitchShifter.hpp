@@ -10,10 +10,10 @@
 namespace zao {
 
   struct PitchShifterInit {
-    int fft_size = 512;
+    int fft_size = 1024;
     int hop_size = 128;
-    int tones_per_octave = 8;
-    int shift_factor = 12;
+    int tones_per_octave = 12;
+    int shift_factor = 6;
     float sample_rate = AUDIO_SAMPLE_RATE;
     int audio_block_size = AUDIO_BLOCK_SAMPLES;
   };
@@ -97,7 +97,6 @@ namespace zao {
     _input_mag(new float32_t[_fft_size_2 + 1]),
     _output_acc(new float32_t[2 * _fft_size])
   {
-    // float32_t window_sum = .0;
     for (int i = 0; i < _fft_size; i++) {
       // _window[i] = (
       //   -.5 * cosf(2.0 * M_PI * (float32_t)i / (float32_t)_fft_size) + .5
@@ -105,12 +104,12 @@ namespace zao {
       _window[i] = 0.5 * (1.0 - cosf(
         2.0 * M_PI * (float32_t)i / ((float32_t)(_fft_size - 1))
       ));
-      // window_sum += _window[i];
     }
 
-    // for (int i = 0; i < _fft_size; i++) {
-    //   _window[i] /= window_sum;
-    // }
+    for (int i = 0; i < _fft_size; i++) {
+      _input_data[i] = .0;
+      _output_data[i] = .0;
+    }
 
     for (int i = 0; i <= _fft_size_2; i++) {
       _last_phase[i] = .0;
@@ -121,6 +120,7 @@ namespace zao {
 
     for (int i = 0; i < 2 * _fft_size; i++) {
       _output_acc[i] = .0;
+      _fft_buffer[i] = .0;
     }
 
     if (_is_rad4) {
@@ -310,7 +310,7 @@ namespace zao {
       }
 
       // zero out negative freqs
-      for (int k = _fft_size + 2; k < 2 * _fft_size; k++) {
+      for (int k = _fft_size/* + 2 */; k < 2 * _fft_size; k++) {
         _fft_buffer[k] = 0.;
       }
 

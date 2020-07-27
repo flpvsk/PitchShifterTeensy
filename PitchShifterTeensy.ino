@@ -1,5 +1,6 @@
 #include "Audio.h"
 #include "AudioStream_F32.h"
+#include "AudioMixer_F32.h"
 #include "OpenAudio_ArduinoLibrary.h"
 
 #include "PitchShifter.hpp"
@@ -12,6 +13,7 @@ AudioSettings_F32 audio_settings(sample_rate_Hz, audio_block_samples);
 //create audio library objects for handling the audio
 AudioInputI2S i2sIn;   // This I16 input/output is T4.x compatible
 AudioConvert_I16toF32 cnvrt1;  // Convert to float
+AudioMixer4_F32 mixer1;
 zao::PitchShifter pitch_shifter(pitch_shifter_init);
 AudioEffectGain_F32 gain1;
 AudioConvert_F32toI16 cnvrt2;
@@ -21,9 +23,10 @@ AudioControlSGTL5000 codec;
 //Make all of the audio connections
 AudioConnection patchCord1(i2sIn, 0, cnvrt1, 0);
 AudioConnection_F32 patchCord2(cnvrt1, 0, pitch_shifter, 0);
-AudioConnection_F32 patchCord3(pitch_shifter, 0, gain1, 0);
-AudioConnection_F32 patchCord4(gain1, 0, cnvrt2, 0);
-AudioConnection patchCord6(cnvrt2, 0, i2sOut, 0);
+AudioConnection_F32 patchCord3(cnvrt1, 0, mixer1, 0);
+AudioConnection_F32 patchCord4(pitch_shifter, 0, mixer1, 1);
+AudioConnection_F32 patchCord6(mixer1, 0, cnvrt2, 0);
+AudioConnection patchCord7(cnvrt2, 0, i2sOut, 0);
 
 //control display and serial interaction
 bool enable_printCPUandMemory = false;
@@ -53,6 +56,8 @@ void setup() {
   codec.adcHighPassFilterEnable();
   codec.inputSelect(AUDIO_INPUT_LINEIN);
 
+  mixer1.gain(0, 0.7);
+  mixer1.gain(1, 0.8);
   pitch_shifter.enable();
 }
 
