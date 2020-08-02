@@ -41,8 +41,8 @@ namespace zao {
     FLOAT *_input_data;
     FLOAT *_output_data;
     FLOAT *_fft_buffer;
-    double *_window;
-    double *_window_out;
+    FLOAT *_window;
+    FLOAT *_window_out;
     int _latency;
     int _rover;
     int _fft_size;
@@ -69,8 +69,8 @@ namespace zao {
     _input_data(new FLOAT[init.fft_size]),
     _output_data(new FLOAT[init.fft_size]),
     _fft_buffer(new FLOAT[2 * init.fft_size]),
-    _window(new double[init.fft_size]),
-    _window_out(new double[init.fft_size]),
+    _window(new FLOAT[init.fft_size]),
+    _window_out(new FLOAT[init.fft_size]),
     _latency(init.fft_size - init.hop_size),
     _rover(_latency),
     _fft_size(init.fft_size),
@@ -89,8 +89,8 @@ namespace zao {
 
     for (int i = 0; i < _fft_size; i++) {
       _window[i] = (
-        -.5 * cos(2.0 * M_PI * (double) i /
-          (double) _fft_size) + .5
+        -.5 * cos(2.0 * M_PI * (FLOAT) i /
+          (FLOAT) _fft_size) + .5
       );
 
       _window_out = _window;
@@ -106,9 +106,6 @@ namespace zao {
 //            6.0 * _math->pi() * (FLOAT) i / (FLOAT) _fft_size
 //          )
 //      );
-      // _window[i] = 0.5 * (1.0 - _math->cosf(
-      //  2.0 * _math->pi() * (FLOAT) i / ((FLOAT) (_fft_size - 1))
-      // ));
     }
 
     for (int i = 0; i < _fft_size; i++) {
@@ -131,10 +128,10 @@ namespace zao {
 
   template<typename FLOAT>
   void PitchShifterAlg<FLOAT>::process(FLOAT *in, FLOAT *out) {
-    double expected_phase_diff = (
-      2.0 * M_PI * (double) _hop_size / (double) _fft_size
+    FLOAT expected_phase_diff = (
+      2.0 * M_PI * (FLOAT) _hop_size / (FLOAT) _fft_size
     );
-    double freq_per_bin = (double) _sample_rate / (double) _fft_size;
+    FLOAT freq_per_bin = (FLOAT) _sample_rate / (FLOAT) _fft_size;
 
     FLOAT min_v = 1.0;
     FLOAT max_v = -1.0;
@@ -162,7 +159,7 @@ namespace zao {
       // do fft transform
       _math->fft(_fft_buffer, _fft_size);
 
-      double real, imag, mag, phase, tmp;
+      FLOAT real, imag, mag, phase, tmp;
       auto *syn_mag = new FLOAT[_fft_size];
       auto *syn_freq = new FLOAT[_fft_size];
 
@@ -176,22 +173,17 @@ namespace zao {
         real = _fft_buffer[2 * k];
         imag = _fft_buffer[2 * k + 1];
 
-        mag = (double) 2.0 * sqrt(real * real + imag * imag);
+        mag = (FLOAT) 2.0 * sqrt(real * real + imag * imag);
         phase = atan2(imag, real);
         tmp = phase - _last_phase[k];
         _last_phase[k] = phase;
 
         tmp -= k * expected_phase_diff;
 
-        // qpd = tmp / _math.pi();
-        // if (qpd >= 0) qpd += qpd&1;
-        // else qpd -= qpd&1;
-        // tmp -= _math.pi() * (FLOAT)qpd;
-
         long qpd = tmp / M_PI;
         if (qpd >= 0) qpd += qpd & 1;
         else qpd -= qpd & 1;
-        tmp -= M_PI * (double) qpd;
+        tmp -= M_PI * (FLOAT) qpd;
 
         // get freq deviation
         tmp = _osamp * tmp / (2.0 * M_PI);
@@ -202,18 +194,10 @@ namespace zao {
         _input_freq[k] = tmp;
       }
 
-//      std::cout << zao::to_debug_string(
-//        "ps input mag",
-//        _input_freq,
-//        _fft_size_2
-//      );
-
-
-
       // processing (shifting the pitch)
       FLOAT pitch_shift = pow(
         2,
-        (double) _shift_factor / (double) _tones_per_octave
+        (FLOAT) _shift_factor / (FLOAT) _tones_per_octave
       );
 
       for (int k = 0; k <= _fft_size_2; k++) {
@@ -229,10 +213,10 @@ namespace zao {
         mag = syn_mag[k];
         tmp = syn_freq[k];
 
-        tmp -= (double) k * freq_per_bin;
+        tmp -= (FLOAT) k * freq_per_bin;
         tmp /= freq_per_bin;
         tmp = 2.0 * M_PI * tmp / _osamp;
-        tmp += (double) k * expected_phase_diff;
+        tmp += (FLOAT) k * expected_phase_diff;
 
         _sum_phase[k] += tmp;
         phase = _sum_phase[k];
@@ -250,18 +234,11 @@ namespace zao {
 
       // window and aggregate
       for (int k = 0; k < _fft_size; k++) {
-        // double win = -.5*cosf(2.*_math->pi()*(double)k/(double)
-        // _fft_size)+.5;
-//        _output_acc[k] += (
-//          2.0 * _window[k] * _fft_buffer[2 * k]
-//            / (_fft_size_2 * _osamp)
-//        );
         _output_acc[k] += (
           2.0 * _window_out[k] * _fft_buffer[2 * k] *
-            (double) _hop_size /
+            (FLOAT) _hop_size /
             (_fft_size * _fft_size)
         );
-        // _output_acc[k] += _fft_buffer[2 * k] * _hop_size * _window[k];
       }
 
       // shift input and output buffers

@@ -312,7 +312,8 @@ int main() {
   auto math = new TestMath();
   zao::PitchShifterAlgInit<float> init;
   init.sample_rate = audio_file.getSampleRate();
-  init.shift_factor = -6;
+  init.shift_factor = 8;
+  init.tones_per_octave = 19;
   init.fft_size = 512;
   init.hop_size = 64;
   init.audio_block_size = 128;
@@ -356,13 +357,12 @@ int main() {
       );
       pitch_shifter->process(in, out2);
 
-      // compareArrays("ret", ret1, ret2, init.fft_size);
-      compareArrays("out", out1, out2, init.audio_block_size);
+      // compareArrays("out", out1, out2, init.audio_block_size);
 
       for (int j = 0; j < init.audio_block_size; j++) {
         int result_index = j + frame_s;
         out1_audio[0][result_index] = out1[j];
-        out2_audio[0][result_index] = out2[j];
+        out2_audio[0][result_index] = .5 * out2[j] + .5 * in[j];
 //        out_audio[0][result_index] = (
 //         out[j] -
 //         audio_file.samples[0][result_index]
