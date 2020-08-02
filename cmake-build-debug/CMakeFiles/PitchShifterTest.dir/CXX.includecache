@@ -1,0 +1,46 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/PitchShifterAlg.cc
+string
+-
+iostream
+-
+cstddef
+-
+
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/lib/AudioFile/AudioFile.h
+iostream
+-
+vector
+-
+assert.h
+-
+string
+-
+fstream
+-
+unordered_map
+-
+iterator
+-
+algorithm
+-
+
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/main_test.cc
+string
+-
+iostream
+-
+PitchShifterAlg.cc
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/PitchShifterAlg.cc
+cmath
+-
+lib/AudioFile/AudioFile.h
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/lib/AudioFile/AudioFile.h
+

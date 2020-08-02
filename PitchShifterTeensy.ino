@@ -3,7 +3,7 @@
 #include "AudioMixer_F32.h"
 #include "OpenAudio_ArduinoLibrary.h"
 
-#include "PitchShifter.hpp"
+#include "PitchShifter.cc"
 
 zao::PitchShifterInit pitch_shifter_init;
 const float sample_rate_Hz = pitch_shifter_init.sample_rate;

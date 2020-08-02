@@ -1,0 +1,3 @@
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Volumes/hdd/Projects/Arduino/PitchShifterTeensy/cmake-build-debug/CMakeFiles/PitchShifterTest.dir
