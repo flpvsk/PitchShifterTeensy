@@ -1,10 +1,11 @@
-#ifndef DebugUtils_
-#define DebugUtils_
+#ifndef DebugUtils_h_
+#define DebugUtils_h_
 
 #include <algorithm>
 #include <iterator>
 
-#define DEBUG 1
+#define DEBUG 0
+#include <Arduino.h>
 
 namespace zao {
 
@@ -21,19 +22,31 @@ namespace zao {
   ) {
     std::string result = "<" + name + ">\n";
     for (int i = 0; i < size; i++) {
-      result += std::to_string(arr[i]);
+      // result += std::to_string(arr[i]);
+      result += arr[i];
       result += ", ";
     }
     result += "\n</" + name + ">\n";
     return result;
   }
 
-  inline void log(std::string s) {
+#if DEBUG
+  inline void log(const char* s) {
     if (!DEBUG) {
       return;
     }
-    std::cout << s << "\n";
+
+    // if (!ARDUINO_LOG) {
+    //   std::cout << s << "\n";
+    // }
+
+    Serial.println(s);
   }
+#else
+  inline void log(const char* s) {
+    return;
+  }
+#endif
 
 }
 

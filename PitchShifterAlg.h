@@ -1,11 +1,15 @@
+#ifndef PitchShifterAlg_h_
+#define PitchShifterAlg_h_
+
 #include <string>
 #include <iostream>
 #include <cstddef>
 #include <cmath>
 
-#include "DebugUtils.cc"
+#include "DebugUtils.h"
 
 namespace zao {
+
   template<class FLOAT>
   class PitchShifterMath {
   public:
@@ -14,7 +18,6 @@ namespace zao {
   };
 
 
-  template<class FLOAT>
   struct PitchShifterAlgInit {
     int fft_size = 512;
     int hop_size = 64;
@@ -28,12 +31,16 @@ namespace zao {
   class PitchShifterAlg {
   public:
     PitchShifterAlg(
-      PitchShifterAlgInit<FLOAT> init,
+      PitchShifterAlgInit init,
       PitchShifterMath<FLOAT> *pitch_shifter_math
     );
 
     ~PitchShifterAlg();
 
+    int getTonesPerOctave();
+    void setTonesPerOctave(int tones_per_octave);
+    int getShiftFactor();
+    void setShiftFactor(int shift_factor);
     void process(FLOAT *in, FLOAT *out);
 
   private:
@@ -63,7 +70,7 @@ namespace zao {
 
   template<typename FLOAT>
   PitchShifterAlg<FLOAT>::PitchShifterAlg(
-    PitchShifterAlgInit<FLOAT> init,
+    PitchShifterAlgInit init,
     PitchShifterMath<FLOAT> *pitch_shifter_math
   ): _math(pitch_shifter_math),
     _input_data(new FLOAT[init.fft_size]),
@@ -128,13 +135,16 @@ namespace zao {
 
   template<typename FLOAT>
   void PitchShifterAlg<FLOAT>::process(FLOAT *in, FLOAT *out) {
+    log("[INFO] PitchShifterAlg.process()\tstart");
     FLOAT expected_phase_diff = (
       2.0 * M_PI * (FLOAT) _hop_size / (FLOAT) _fft_size
     );
+
+    log("[INFO] PitchShifterAlg.process()\texp phase diff ok");
+
     FLOAT freq_per_bin = (FLOAT) _sample_rate / (FLOAT) _fft_size;
 
-    FLOAT min_v = 1.0;
-    FLOAT max_v = -1.0;
+    log("[INFO] PitchShifterAlg.process()\tfreq per bin ok);
 
     for (int i = 0; i < _audio_block_size; i++) {
       _input_data[_rover] = in[i];
@@ -145,6 +155,8 @@ namespace zao {
       if (_rover < _fft_size) {
         continue;
       }
+
+      log("[INFO] PitchShifterAlg.process()\tbuffer filled);
 
       // We do have enough samples to process
       _rover = _latency;
@@ -158,6 +170,8 @@ namespace zao {
       // do analysis
       // do fft transform
       _math->fft(_fft_buffer, _fft_size);
+
+      log("[INFO] PitchShifterAlg.process()\tfft done");
 
       FLOAT real, imag, mag, phase, tmp;
       auto *syn_mag = new FLOAT[_fft_size];
@@ -193,6 +207,8 @@ namespace zao {
         _input_mag[k] = mag;
         _input_freq[k] = tmp;
       }
+
+      log("[INFO] PitchShifterAlg.process()\tphase compute done");
 
       // processing (shifting the pitch)
       FLOAT pitch_shift = pow(
@@ -230,7 +246,11 @@ namespace zao {
         _fft_buffer[k] = 0.;
       }
 
+      log("[INFO] PitchShifterAlg.process()\tsynth prep done");
+
       _math->ifft(_fft_buffer, _fft_size);
+
+      log("[INFO] PitchShifterAlg.process()\tifft done");
 
       // window and aggregate
       for (int k = 0; k < _fft_size; k++) {
@@ -256,9 +276,32 @@ namespace zao {
         _input_data[k] = _input_data[k + _hop_size];
       }
 
+      log("[INFO] PitchShifterAlg.process()\tcomplete");
+
       delete[] syn_mag;
       delete[] syn_freq;
     }
+  }
+
+
+  template<typename FLOAT>
+  int PitchShifterAlg<FLOAT>::getTonesPerOctave() {
+    return _tones_per_octave;
+  }
+
+  template<typename FLOAT>
+  void PitchShifterAlg<FLOAT>::setTonesPerOctave(int tones_per_octave) {
+    _tones_per_octave = tones_per_octave;
+  }
+
+  template<typename FLOAT>
+  int PitchShifterAlg<FLOAT>::getShiftFactor() {
+    return _shift_factor;
+  }
+
+  template<typename FLOAT>
+  void PitchShifterAlg<FLOAT>::setShiftFactor(int shift_factor) {
+    _shift_factor = shift_factor;
   }
 
   template<typename FLOAT>
@@ -293,3 +336,5 @@ namespace zao {
     delete[] _input_mag;
   }
 }
+
+#endif

@@ -312,8 +312,8 @@ int main() {
   auto math = new TestMath();
   zao::PitchShifterAlgInit<float> init;
   init.sample_rate = audio_file.getSampleRate();
-  init.shift_factor = 8;
-  init.tones_per_octave = 19;
+  init.shift_factor = -12;
+  init.tones_per_octave = 12;
   init.fft_size = 512;
   init.hop_size = 64;
   init.audio_block_size = 128;

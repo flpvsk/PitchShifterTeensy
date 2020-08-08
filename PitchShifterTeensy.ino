@@ -3,7 +3,7 @@
 #include "AudioMixer_F32.h"
 #include "OpenAudio_ArduinoLibrary.h"
 
-#include "PitchShifter.cc"
+#include "PitchShifter.h"
 
 zao::PitchShifterInit pitch_shifter_init;
 const float sample_rate_Hz = pitch_shifter_init.sample_rate;
@@ -23,9 +23,9 @@ AudioControlSGTL5000 codec;
 //Make all of the audio connections
 AudioConnection patchCord1(i2sIn, 0, cnvrt1, 0);
 AudioConnection_F32 patchCord2(cnvrt1, 0, pitch_shifter, 0);
-AudioConnection_F32 patchCord3(cnvrt1, 0, mixer1, 0);
-AudioConnection_F32 patchCord4(pitch_shifter, 0, mixer1, 1);
-AudioConnection_F32 patchCord6(mixer1, 0, cnvrt2, 0);
+// AudioConnection_F32 patchCord3(cnvrt1, 0, mixer1, 0);
+AudioConnection_F32 patchCord4(pitch_shifter, 0, cnvrt2, 0);
+// AudioConnection_F32 patchCord6(mixer1, 0, cnvrt2, 0);
 AudioConnection patchCord7(cnvrt2, 0, i2sOut, 0);
 
 //control display and serial interaction
@@ -58,7 +58,8 @@ void setup() {
 
   mixer1.gain(0, 0.7);
   mixer1.gain(1, 0.8);
-  pitch_shifter.enable();
+  pitch_shifter.setShiftFactor(3);
+  pitch_shifter.setEnabled(true);
 }
 
 void loop() {
