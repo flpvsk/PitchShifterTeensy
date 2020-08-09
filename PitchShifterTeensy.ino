@@ -56,12 +56,17 @@ void setup() {
   AudioMemory_F32(40, audio_settings);
 
   codec.enable();
-  codec.adcHighPassFilterEnable();
+  // codec.adcHighPassFilterEnable();
+  codec.adcHighPassFilterDisable();
   codec.inputSelect(AUDIO_INPUT_LINEIN);
 
+  codec.audioProcessorDisable();
+  codec.muteHeadphone();
+  code.lineOutLevel(13);
+
   mixer1.gain(0, 0.6);
-  mixer1.gain(1, 0.6);
-  pitch_shifter.setShiftFactor(0);
+  mixer1.gain(1, 1.0);
+  pitch_shifter.setShiftFactor(8);
   pitch_shifter.setTonesPerOctave(19);
   pitch_shifter.setEnabled(true);
 }

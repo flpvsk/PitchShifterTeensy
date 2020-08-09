@@ -148,7 +148,7 @@ namespace zao {
 
   struct PitchShifterInit {
     int fft_size = 1024;
-    int hop_size = 512;
+    int hop_size = 256;
     int tones_per_octave = 12;
     int shift_factor = 12;
     float sample_rate = AUDIO_SAMPLE_RATE;

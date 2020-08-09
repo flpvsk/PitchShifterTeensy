@@ -101,18 +101,18 @@ namespace zao {
       );
 
       _window_out = _window;
-//      _window_out[i] = (
-//        .355768 -
-//          .487396 * _math->cosf(
-//            2.0 * _math->pi() * (FLOAT) i / (FLOAT) _fft_size
-//          ) +
-//          .144232 * _math->cosf(
-//            4.0 * _math->pi() * (FLOAT) i / (FLOAT) _fft_size
-//          ) -
-//          .012604 * _math->cosf(
-//            6.0 * _math->pi() * (FLOAT) i / (FLOAT) _fft_size
-//          )
-//      );
+      // _window_out[i] = (
+      //   .355768 -
+      //     .487396 * cos(
+      //       2.0 * M_PI * (FLOAT) i / (FLOAT) _fft_size
+      //     ) +
+      //     .144232 * cos(
+      //       4.0 * M_PI * (FLOAT) i / (FLOAT) _fft_size
+      //     ) -
+      //     .012604 * cos(
+      //       6.0 * M_PI * (FLOAT) i / (FLOAT) _fft_size
+      //     )
+      // );
     }
 
     for (int i = 0; i < _fft_size; i++) {
@@ -216,12 +216,27 @@ namespace zao {
         (FLOAT) _shift_factor / (FLOAT) _tones_per_octave
       );
 
+      // int noise_bin = round(_fft_size / _hop_size);
+      // log("noise_bin");
+      // log(String(noise_bin).c_str());
+
       for (int k = 0; k <= _fft_size_2; k++) {
         int index = round(k * pitch_shift);
         if (index <= _fft_size_2) {
           syn_mag[index] += _input_mag[k];
           syn_freq[index] = _input_freq[k] * pitch_shift;
         }
+
+        // if (index % noise_bin == 0) {
+        //   syn_mag[index] *= 0.1;
+        // }
+
+        // if (
+        //   index % (noise_bin - 1) == 0 ||
+        //   index % (noise_bin + 1) == 0
+        // ) {
+        //   syn_mag[index] *= 0.5;
+        // }
       }
 
       // synthesis
@@ -255,7 +270,7 @@ namespace zao {
       // window and aggregate
       for (int k = 0; k < _fft_size; k++) {
         _output_acc[k] += (
-          2.0 * _window_out[k] * _fft_buffer[2 * k] *
+          4.0 * _window_out[k] * _fft_buffer[2 * k] *
             (FLOAT) _hop_size /
             (_fft_size * _fft_size)
         );
