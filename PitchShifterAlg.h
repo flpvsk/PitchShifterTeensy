@@ -144,7 +144,7 @@ namespace zao {
 
     FLOAT freq_per_bin = (FLOAT) _sample_rate / (FLOAT) _fft_size;
 
-    log("[INFO] PitchShifterAlg.process()\tfreq per bin ok);
+    log("[INFO] PitchShifterAlg.process()\tfreq per bin ok");
 
     for (int i = 0; i < _audio_block_size; i++) {
       _input_data[_rover] = in[i];
@@ -156,7 +156,7 @@ namespace zao {
         continue;
       }
 
-      log("[INFO] PitchShifterAlg.process()\tbuffer filled);
+      log("[INFO] PitchShifterAlg.process()\tbuffer filled");
 
       // We do have enough samples to process
       _rover = _latency;

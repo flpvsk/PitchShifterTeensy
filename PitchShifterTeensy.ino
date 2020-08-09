@@ -22,10 +22,13 @@ AudioControlSGTL5000 codec;
 
 //Make all of the audio connections
 AudioConnection patchCord1(i2sIn, 0, cnvrt1, 0);
+
+AudioConnection_F32 patchCord3(cnvrt1, 0, mixer1, 0);
+
 AudioConnection_F32 patchCord2(cnvrt1, 0, pitch_shifter, 0);
-// AudioConnection_F32 patchCord3(cnvrt1, 0, mixer1, 0);
-AudioConnection_F32 patchCord4(pitch_shifter, 0, cnvrt2, 0);
-// AudioConnection_F32 patchCord6(mixer1, 0, cnvrt2, 0);
+AudioConnection_F32 patchCord4(pitch_shifter, 0, mixer1, 1);
+
+AudioConnection_F32 patchCord6(mixer1, 0, cnvrt2, 0);
 AudioConnection patchCord7(cnvrt2, 0, i2sOut, 0);
 
 //control display and serial interaction
@@ -56,12 +59,45 @@ void setup() {
   codec.adcHighPassFilterEnable();
   codec.inputSelect(AUDIO_INPUT_LINEIN);
 
-  mixer1.gain(0, 0.7);
-  mixer1.gain(1, 0.8);
-  pitch_shifter.setShiftFactor(3);
+  mixer1.gain(0, 0.6);
+  mixer1.gain(1, 0.6);
+  pitch_shifter.setShiftFactor(0);
+  pitch_shifter.setTonesPerOctave(19);
   pitch_shifter.setEnabled(true);
 }
 
 void loop() {
+  printCPUandMemory(millis(), 3000);
+}
 
+void printCPUandMemory(
+  unsigned long curTime_millis,
+  unsigned long updatePeriod_millis
+) {
+  //static unsigned long updatePeriod_millis = 3000; //how many
+  //milliseconds between updating gain reading?
+  static unsigned long lastUpdate_millis = 0;
+
+  //has enough time passed to update everything?
+  if (curTime_millis < lastUpdate_millis) lastUpdate_millis = 0;
+  //handle wrap-around of the clock
+  if ((curTime_millis - lastUpdate_millis) > updatePeriod_millis) {
+    //is it time to update the user interface?
+    Serial.print("CPU Cur/Peak: ");
+    Serial.print(audio_settings.processorUsage());
+    Serial.print("%/");
+    Serial.print(audio_settings.processorUsageMax());
+    Serial.print("%,   ");
+    Serial.print(" Dyn MEM Float32 Cur/Peak: ");
+    Serial.print(AudioMemoryUsage_F32());
+    Serial.print("/");
+    Serial.print(AudioMemoryUsageMax_F32());
+    Serial.print(" MEM Int16 Cur/Peak: ");
+    Serial.print(AudioMemoryUsage());
+    Serial.print("/");
+    Serial.print(AudioMemoryUsageMax());
+    Serial.println();
+
+    lastUpdate_millis = curTime_millis;
+  }
 }
